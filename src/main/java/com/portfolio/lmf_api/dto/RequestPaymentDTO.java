@@ -11,5 +11,5 @@ import lombok.Setter;
 @Setter
 public class RequestPaymentDTO {
     private Integer amount;
-    private Integer matchId;
+    private Long matchId;
 }
