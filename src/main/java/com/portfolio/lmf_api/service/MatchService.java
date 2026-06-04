@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,7 @@ public class MatchService {
         /* Building the Entity */
         Match entity = new Match();
 
-        entity.setDate(request.getDate());
+        entity.setDate(parseDate(request.getDate()));
         entity.setDivisionName(request.getDivisionName().trim().toUpperCase());
         entity.setHomeTeamName(request.getHomeTeamName().trim().toUpperCase());
         entity.setVisitTeamName(request.getVisitTeamName().trim().toUpperCase());
@@ -35,7 +36,7 @@ public class MatchService {
         /* Building the Response DTO */
         MatchDTO matchDTO = new MatchDTO();
 
-        matchDTO.setDate(savedEntity.getDate());
+        matchDTO.setDate(savedEntity.getDate().toString());
         matchDTO.setDivisionName(savedEntity.getDivisionName());
         matchDTO.setHomeTeamName(savedEntity.getHomeTeamName());
         matchDTO.setVisitTeamName(savedEntity.getVisitTeamName());
@@ -53,7 +54,7 @@ public class MatchService {
         /* Building the Entity */
         Match entity = new Match();
 
-        entity.setDate(request.getDate());
+        entity.setDate(parseDate(request.getDate()));
         entity.setDivisionName(request.getDivisionName().trim().toUpperCase());
         entity.setHomeTeamName(request.getHomeTeamName().trim().toUpperCase());
         entity.setVisitTeamName(request.getVisitTeamName().trim().toUpperCase());
@@ -67,7 +68,7 @@ public class MatchService {
         /* Building the Response DTO */
         MatchDTO matchDTO = new MatchDTO();
 
-        matchDTO.setDate(updatedEntity.getDate());
+        matchDTO.setDate(updatedEntity.getDate().toString());
         matchDTO.setDivisionName(updatedEntity.getDivisionName());
         matchDTO.setHomeTeamName(updatedEntity.getHomeTeamName());
         matchDTO.setVisitTeamName(updatedEntity.getVisitTeamName());
@@ -85,7 +86,7 @@ public class MatchService {
         MatchDTO matchDTO = new MatchDTO();
         Match match = matchOptional.get();
 
-        matchDTO.setDate(match.getDate());
+        matchDTO.setDate(match.getDate().toString());
         matchDTO.setDivisionName(match.getDivisionName());
         matchDTO.setHomeTeamName(match.getHomeTeamName());
         matchDTO.setVisitTeamName(match.getVisitTeamName());
@@ -110,7 +111,7 @@ public class MatchService {
         for (Match match : matchesFiltered) {
             MatchDTO matchDTO = new MatchDTO();
 
-            matchDTO.setDate(match.getDate());
+            matchDTO.setDate(match.getDate().toString());
             matchDTO.setDivisionName(match.getDivisionName());
             matchDTO.setHomeTeamName(match.getHomeTeamName());
             matchDTO.setVisitTeamName(match.getVisitTeamName());
@@ -130,7 +131,7 @@ public class MatchService {
         for (Match match : matches) {
             MatchDTO matchDTO = new MatchDTO();
 
-            matchDTO.setDate(match.getDate());
+            matchDTO.setDate(match.getDate().toString());
             matchDTO.setDivisionName(match.getDivisionName());
             matchDTO.setHomeTeamName(match.getHomeTeamName());
             matchDTO.setVisitTeamName(match.getVisitTeamName());
@@ -139,5 +140,10 @@ public class MatchService {
         }
 
         return responseDTOList;
+    }
+
+    private LocalDateTime parseDate(String date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return LocalDateTime.parse(date, formatter);
     }
 }
