@@ -3,7 +3,9 @@ package com.portfolio.lmf_api.service.impl;
 import com.portfolio.lmf_api.dto.MatchDTO;
 import com.portfolio.lmf_api.dto.RequestPaymentDTO;
 import com.portfolio.lmf_api.dto.ResponsePaymentDTO;
+import com.portfolio.lmf_api.model.Match;
 import com.portfolio.lmf_api.model.Payment;
+import com.portfolio.lmf_api.repository.MatchRepository;
 import com.portfolio.lmf_api.repository.PaymentRepository;
 import com.portfolio.lmf_api.service.MatchService;
 import com.portfolio.lmf_api.service.PaymentService;
@@ -13,11 +15,13 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
     @Autowired private PaymentRepository repository;
     @Autowired private MatchService matchService;
+    @Autowired private MatchRepository matchRepository;
 
     @Override
     public ResponsePaymentDTO addPayment(RequestPaymentDTO request) {
@@ -27,19 +31,22 @@ public class PaymentServiceImpl implements PaymentService {
         entity.setAmount(request.getAmount());
         entity.setTimestamp(LocalDateTime.now());
 
+        /* Searching the Match */
+        Optional<Match> matchOpt = matchRepository.findById(request.getMatchId());
+        matchOpt.ifPresent(entity::setMatch);
+
         /* Saving the Entity */
         Payment savedEntity = repository.save(entity);
-
-        /* Searching the Match */
-        MatchDTO match = matchService.getById(request.getMatchId());
 
         /* Building the response DTO */
         ResponsePaymentDTO responsePaymentDTO = new ResponsePaymentDTO();
 
-        responsePaymentDTO.setAmount(savedEntity.getAmount());
-        responsePaymentDTO.setTimestamp(savedEntity.getTimestamp());
-        responsePaymentDTO.setMatch(match);
-        responsePaymentDTO.setCourtName(savedEntity.getMatch().getCourt().getName());
+        if (matchOpt.isPresent()) {
+            responsePaymentDTO.setAmount(savedEntity.getAmount());
+            responsePaymentDTO.setTimestamp(savedEntity.getTimestamp());
+            responsePaymentDTO.setMatch(matchService.mapToDTO(matchOpt.get()));
+            responsePaymentDTO.setCourtName(savedEntity.getMatch().getCourt().getName());
+        }
 
         return responsePaymentDTO;
     }

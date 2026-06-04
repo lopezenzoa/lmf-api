@@ -152,4 +152,15 @@ public class MatchService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return LocalDateTime.parse(date, formatter);
     }
+
+    public MatchDTO mapToDTO(Match match) {
+        MatchDTO matchDTO = new MatchDTO();
+
+        matchDTO.setDate(match.getDate().toString());
+        matchDTO.setDivisionName(match.getDivisionName());
+        matchDTO.setHomeTeamName(match.getHomeTeamName());
+        matchDTO.setVisitTeamName(match.getVisitTeamName());
+
+        return matchDTO;
+    }
 }
