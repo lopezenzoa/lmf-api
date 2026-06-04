@@ -1,7 +1,9 @@
 package com.portfolio.lmf_api.service;
 
 import com.portfolio.lmf_api.dto.MatchDTO;
+import com.portfolio.lmf_api.model.Court;
 import com.portfolio.lmf_api.model.Match;
+import com.portfolio.lmf_api.repository.CourtRepository;
 import com.portfolio.lmf_api.repository.MatchRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,7 +18,7 @@ import java.util.Optional;
 public class MatchService {
     @Autowired
     private MatchRepository repository;
-    @Autowired private CourtService courtService;
+    @Autowired private CourtRepository courtRepository;
 
     public MatchDTO addMatch(MatchDTO request) {
         /* Building the Entity */
@@ -29,6 +31,8 @@ public class MatchService {
         entity.setPayments(new ArrayList<>());
 
         /* Searching the Court */
+        Optional<Court> courtOpt = courtRepository.findByOwnerTeamName(entity.getHomeTeamName());
+        courtOpt.ifPresent(entity::setCourt);
 
         /* Saving the Entity */
         Match savedEntity = repository.save(entity);
@@ -61,6 +65,8 @@ public class MatchService {
         entity.setPayments(new ArrayList<>());
 
         /* Searching the Court */
+        Optional<Court> courtOpt = courtRepository.findByOwnerTeamName(entity.getHomeTeamName());
+        courtOpt.ifPresent(entity::setCourt);
 
         /* Updating the Entity */
         Match updatedEntity = repository.save(entity);

@@ -63,7 +63,7 @@ public class PaymentServiceImpl implements PaymentService {
             /* Building the Match */
             MatchDTO matchDTO = new MatchDTO();
 
-            matchDTO.setDate(payment.getMatch().getDate());
+            matchDTO.setDate(payment.getMatch().getDate().toString());
             matchDTO.setDivisionName(payment.getMatch().getDivisionName());
             matchDTO.setHomeTeamName(payment.getMatch().getHomeTeamName());
             matchDTO.setVisitTeamName(payment.getMatch().getVisitTeamName());
