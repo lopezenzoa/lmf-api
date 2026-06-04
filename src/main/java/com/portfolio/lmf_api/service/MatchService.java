@@ -122,8 +122,8 @@ public class MatchService {
         return responseDTOList;
     }
 
-    public List<MatchDTO> getByDate(LocalDateTime date) {
-        List<Match> matches = repository.findByDate(date);
+    public List<MatchDTO> getByDate(String date) {
+        List<Match> matches = repository.findByDate(parseDate(date));
 
         /* Building the Response DTO list */
         List<MatchDTO> responseDTOList = new ArrayList<>();
