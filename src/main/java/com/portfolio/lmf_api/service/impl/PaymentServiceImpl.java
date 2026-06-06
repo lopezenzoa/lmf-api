@@ -1,10 +1,13 @@
 package com.portfolio.lmf_api.service.impl;
 
-import com.portfolio.lmf_api.dto.MatchDTO;
 import com.portfolio.lmf_api.dto.RequestPaymentDTO;
 import com.portfolio.lmf_api.dto.ResponsePaymentDTO;
+import com.portfolio.lmf_api.exception.InvalidRequestFieldException;
+import com.portfolio.lmf_api.exception.NotFoundException;
+import com.portfolio.lmf_api.model.Court;
 import com.portfolio.lmf_api.model.Match;
 import com.portfolio.lmf_api.model.Payment;
+import com.portfolio.lmf_api.repository.CourtRepository;
 import com.portfolio.lmf_api.repository.MatchRepository;
 import com.portfolio.lmf_api.repository.PaymentRepository;
 import com.portfolio.lmf_api.service.MatchService;
@@ -22,69 +25,74 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired private PaymentRepository repository;
     @Autowired private MatchService matchService;
     @Autowired private MatchRepository matchRepository;
+    @Autowired private CourtRepository courtRepository;
 
     @Override
-    public ResponsePaymentDTO addPayment(RequestPaymentDTO request) {
-        /* Building the Entity */
+    public ResponsePaymentDTO addPayment(RequestPaymentDTO request) throws InvalidRequestFieldException {
+        /* VERIFYING REQUEST */
+        if (request.getAmount() <= 0 || request.getMatchId() <= 0)
+            throw new InvalidRequestFieldException("AMOUNT OR MATCH ID ARE NEGATIVE OR ZERO");
+
+        /* BUILDING THE ENTITY */
         Payment entity = new Payment();
 
         entity.setAmount(request.getAmount());
         entity.setTimestamp(LocalDateTime.now());
 
-        /* Searching the Match */
+        /* SEARCHING THE MATCH */
         Optional<Match> matchOpt = matchRepository.findById(request.getMatchId());
-        matchOpt.ifPresent(entity::setMatch);
 
-        /* Saving the Entity */
+        if (matchOpt.isPresent())
+            entity.setMatch(matchOpt.get());
+        else
+            throw new NotFoundException("MATCH WITH ID '" + request.getMatchId() + "' DOESN'T EXIST");
+
+        /* SAVING THE ENTITY */
         Payment savedEntity = repository.save(entity);
 
-        /* Building the response DTO */
-        ResponsePaymentDTO responsePaymentDTO = new ResponsePaymentDTO();
-
-        if (matchOpt.isPresent()) {
-            responsePaymentDTO.setAmount(savedEntity.getAmount());
-            responsePaymentDTO.setTimestamp(savedEntity.getTimestamp());
-            responsePaymentDTO.setMatch(matchService.mapToDTO(matchOpt.get()));
-            responsePaymentDTO.setCourtName(savedEntity.getMatch().getCourt().getName());
-        }
-
-        return responsePaymentDTO;
+        /* BUILDING THE RESPONSE */
+        return mapToResponse(savedEntity);
     }
 
     @Override
     public List<ResponsePaymentDTO> getByCourtName(String courtName) {
+        /* INITIAL FORMATTING */
+        courtName = courtName.trim().toUpperCase();
+
+        /* SEARCHING COURT */
+        Optional<Court> courtOpt = courtRepository.findByName(courtName);
+
+        if (courtOpt.isEmpty())
+            throw new NotFoundException("COURT WITH NAME '" + courtName + "' DOESN'T EXIST");
+
         List<Payment> payments = repository.findAll();
 
-        /* Filtering with Court name */
+        /* FILTERING */
         List<Payment> paymentsFiltered = new ArrayList<>();
 
         for (Payment payment : payments) {
-            if (payment.getMatch().getCourt().getName().equals(courtName.trim().toUpperCase()))
+            if (payment.getMatch().getCourt().getName().equals(courtName))
                 paymentsFiltered.add(payment);
         }
 
-        /* Building the response DTO list */
-        List<ResponsePaymentDTO> paymentDTOList = new ArrayList<>();
+        /* BUILDING THE RESPONSE LIST */
+        List<ResponsePaymentDTO> responseList = new ArrayList<>();
 
         for (Payment payment : paymentsFiltered) {
-            /* Building the Match */
-            MatchDTO matchDTO = new MatchDTO();
-
-            matchDTO.setDate(payment.getMatch().getDate().toString());
-            matchDTO.setDivisionName(payment.getMatch().getDivisionName());
-            matchDTO.setHomeTeamName(payment.getMatch().getHomeTeamName());
-            matchDTO.setVisitTeamName(payment.getMatch().getVisitTeamName());
-
-            ResponsePaymentDTO responsePaymentDTO = new ResponsePaymentDTO();
-
-            responsePaymentDTO.setAmount(payment.getAmount());
-            responsePaymentDTO.setTimestamp(payment.getTimestamp());
-            responsePaymentDTO.setMatch(matchDTO);
-            responsePaymentDTO.setCourtName(payment.getMatch().getCourt().getName());
-
-            paymentDTOList.add(responsePaymentDTO);
+            responseList.add(mapToResponse(payment));
         }
 
-        return paymentDTOList;
+        return responseList;
+    }
+
+    public ResponsePaymentDTO mapToResponse(Payment payment) {
+        ResponsePaymentDTO responsePaymentDTO = new ResponsePaymentDTO();
+
+        responsePaymentDTO.setAmount(payment.getAmount());
+        responsePaymentDTO.setTimestamp(payment.getTimestamp());
+        responsePaymentDTO.setMatch(matchService.mapToResponse(payment.getMatch()));
+        responsePaymentDTO.setCourtName(payment.getMatch().getCourt().getName());
+
+        return responsePaymentDTO;
     }
 }

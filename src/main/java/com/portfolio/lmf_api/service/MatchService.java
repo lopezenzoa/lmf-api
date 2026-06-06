@@ -1,6 +1,9 @@
 package com.portfolio.lmf_api.service;
 
 import com.portfolio.lmf_api.dto.MatchDTO;
+import com.portfolio.lmf_api.exception.InvalidRequestFieldException;
+import com.portfolio.lmf_api.exception.NotFoundException;
+import com.portfolio.lmf_api.exception.UniquenessViolationException;
 import com.portfolio.lmf_api.model.Court;
 import com.portfolio.lmf_api.model.Match;
 import com.portfolio.lmf_api.repository.CourtRepository;
@@ -20,140 +23,148 @@ public class MatchService {
     private MatchRepository repository;
     @Autowired private CourtRepository courtRepository;
 
-    public MatchDTO addMatch(MatchDTO request) {
-        /* Building the Entity */
+    public MatchDTO addMatch(MatchDTO request) throws InvalidRequestFieldException, UniquenessViolationException, NotFoundException {
+        /* INITIAL FORMATTING */
+        final LocalDateTime PARSED_DATE = parseDate(request.getDate());
+        request.setDivisionName(request.getDivisionName().trim().toUpperCase());
+        request.setHomeTeamName(request.getHomeTeamName().trim().toUpperCase());
+        request.setVisitTeamName(request.getVisitTeamName().trim().toUpperCase());
+
+        /* VERIFYING REQUEST */
+        verifyEmptiness(request);
+
+        /* VERIFYING UNIQUENESS */
+        verifyUniqueness(request);
+
+        /* BUILDING THE ENTITY */
         Match entity = new Match();
 
-        entity.setDate(parseDate(request.getDate()));
-        entity.setDivisionName(request.getDivisionName().trim().toUpperCase());
-        entity.setHomeTeamName(request.getHomeTeamName().trim().toUpperCase());
-        entity.setVisitTeamName(request.getVisitTeamName().trim().toUpperCase());
+        entity.setDate(PARSED_DATE);
+        entity.setDivisionName(request.getDivisionName());
+        entity.setHomeTeamName(request.getHomeTeamName());
+        entity.setVisitTeamName(request.getVisitTeamName());
         entity.setPayments(new ArrayList<>());
 
-        /* Searching the Court */
+        /* SEARCHING THE COURT */
         Optional<Court> courtOpt = courtRepository.findByOwnerTeamName(entity.getHomeTeamName());
-        courtOpt.ifPresent(entity::setCourt);
 
-        /* Saving the Entity */
+        if (courtOpt.isPresent())
+            entity.setCourt(courtOpt.get());
+        else
+            throw new NotFoundException("COURT WITH OWNER TEAM NAME '" + request.getHomeTeamName() + "' DOESN'T EXIST");
+
+        /* SAVING THE ENTITY */
         Match savedEntity = repository.save(entity);
 
-        /* Building the Response DTO */
-        MatchDTO matchDTO = new MatchDTO();
-
-        matchDTO.setDate(savedEntity.getDate().toString());
-        matchDTO.setDivisionName(savedEntity.getDivisionName());
-        matchDTO.setHomeTeamName(savedEntity.getHomeTeamName());
-        matchDTO.setVisitTeamName(savedEntity.getVisitTeamName());
-
-        return matchDTO;
+        /* BUILDING THE RESPONSE */
+        return mapToResponse(savedEntity);
     }
 
-    public MatchDTO updateMatch(Long matchId, MatchDTO request) {
-        /* Searching for coincidence with id */
+    public MatchDTO updateMatch(Long matchId, MatchDTO request) throws InvalidRequestFieldException, NotFoundException, UniquenessViolationException {
+        /* INITIAL FORMATTING */
+        final LocalDateTime PARSED_DATE = parseDate(request.getDate());
+        request.setDivisionName(request.getDivisionName().trim().toUpperCase());
+        request.setHomeTeamName(request.getHomeTeamName().trim().toUpperCase());
+        request.setVisitTeamName(request.getVisitTeamName().trim().toUpperCase());
+
+        /* SEARCHING THE CANDIDATE FOR UPDATING */
         Optional<Match> matchOptional = repository.findById(matchId);
 
         if (matchOptional.isEmpty())
-            return null;
+            throw new NotFoundException("MATCH WITH ID '" + matchId + "' DOESN'T EXIST");
 
-        /* Building the Entity */
-        Match entity = new Match();
+        /* VERIFYING REQUEST */
+        verifyEmptiness(request);
 
-        entity.setDate(parseDate(request.getDate()));
-        entity.setDivisionName(request.getDivisionName().trim().toUpperCase());
-        entity.setHomeTeamName(request.getHomeTeamName().trim().toUpperCase());
-        entity.setVisitTeamName(request.getVisitTeamName().trim().toUpperCase());
-        entity.setPayments(new ArrayList<>());
+        /* VERIFYING UNIQUENESS OF FIELDS (EXCLUDING THE ACTUAL CANDIDATE) */
+        verifyUniqueness(matchId, request);
 
-        /* Searching the Court */
-        Optional<Court> courtOpt = courtRepository.findByOwnerTeamName(entity.getHomeTeamName());
-        courtOpt.ifPresent(entity::setCourt);
+        /* BUILDING THE ENTITY */
+        Match entity = matchOptional.get();
 
-        /* Updating the Entity */
+        entity.setDate(PARSED_DATE);
+        entity.setDivisionName(request.getDivisionName());
+        entity.setHomeTeamName(request.getHomeTeamName());
+        entity.setVisitTeamName(request.getVisitTeamName());
+
+        /* SEARCHING THE COURT */
+        Optional<Court> courtOpt = courtRepository.findByOwnerTeamName(request.getHomeTeamName());
+
+        if (courtOpt.isPresent())
+            entity.setCourt(courtOpt.get());
+        else
+            throw new NotFoundException("COURT WITH OWNER TEAM NAME '" + request.getHomeTeamName() + "' DOESN'T EXIST");
+
+        /* UPDATING THE ENTITY */
         Match updatedEntity = repository.save(entity);
 
-        /* Building the Response DTO */
-        MatchDTO matchDTO = new MatchDTO();
-
-        matchDTO.setDate(updatedEntity.getDate().toString());
-        matchDTO.setDivisionName(updatedEntity.getDivisionName());
-        matchDTO.setHomeTeamName(updatedEntity.getHomeTeamName());
-        matchDTO.setVisitTeamName(updatedEntity.getVisitTeamName());
-
-        return matchDTO;
+        /* BUILDING THE RESPONSE */
+        return mapToResponse(updatedEntity);
     }
 
     public MatchDTO getById(Long id) {
         Optional<Match> matchOptional = repository.findById(id);
 
         if (matchOptional.isEmpty())
-            return null;
+            throw new NotFoundException("MATCH NOT FOUND");
 
-        /* Building the Response DTO */
-        MatchDTO matchDTO = new MatchDTO();
+        /* BUILDING THE RESPONSE */
         Match match = matchOptional.get();
 
-        matchDTO.setDate(match.getDate().toString());
-        matchDTO.setDivisionName(match.getDivisionName());
-        matchDTO.setHomeTeamName(match.getHomeTeamName());
-        matchDTO.setVisitTeamName(match.getVisitTeamName());
-
-        return matchDTO;
+        return mapToResponse(match);
     }
 
     public List<MatchDTO> getByCourtName(String courtName) {
+        /* INITIAL FORMATTING */
+        courtName = courtName.trim().toUpperCase();
+
+        /* SEARCHING COURT */
+        Optional<Court> courtOpt = courtRepository.findByName(courtName);
+
+        if (courtOpt.isEmpty())
+            throw new NotFoundException("COURT WITH NAME '" + courtName + "' DOESN'T EXIST");
+
         List<Match> matches = repository.findAll();
 
-        /* Filtering with Court */
+        /* FILTERING */
         List<Match> matchesFiltered = new ArrayList<>();
 
         for (Match match : matches) {
-            if (match.getCourt().getName().equals(courtName.trim().toUpperCase()))
+            if (match.getCourt().getName().equals(courtName))
                 matchesFiltered.add(match);
         }
 
-        /* Building the Response DTO list */
-        List<MatchDTO> responseDTOList = new ArrayList<>();
+        /* BUILDING THE RESPONSE LIST */
+        List<MatchDTO> responseList = new ArrayList<>();
 
         for (Match match : matchesFiltered) {
-            MatchDTO matchDTO = new MatchDTO();
-
-            matchDTO.setDate(match.getDate().toString());
-            matchDTO.setDivisionName(match.getDivisionName());
-            matchDTO.setHomeTeamName(match.getHomeTeamName());
-            matchDTO.setVisitTeamName(match.getVisitTeamName());
-
-            responseDTOList.add(matchDTO);
+            responseList.add(mapToResponse(match));
         }
 
-        return responseDTOList;
+        return responseList;
     }
 
     public List<MatchDTO> getByDate(String date) {
-        List<Match> matches = repository.findByDate(parseDate(date));
+        final LocalDateTime PARSED_DATE = parseDate(date);
 
-        /* Building the Response DTO list */
-        List<MatchDTO> responseDTOList = new ArrayList<>();
+        List<Match> matches = repository.findByDate(PARSED_DATE);
+
+        /* BUILDING THE RESPONSE LIST */
+        List<MatchDTO> responseList = new ArrayList<>();
 
         for (Match match : matches) {
-            MatchDTO matchDTO = new MatchDTO();
-
-            matchDTO.setDate(match.getDate().toString());
-            matchDTO.setDivisionName(match.getDivisionName());
-            matchDTO.setHomeTeamName(match.getHomeTeamName());
-            matchDTO.setVisitTeamName(match.getVisitTeamName());
-
-            responseDTOList.add(matchDTO);
+            responseList.add(mapToResponse(match));
         }
 
-        return responseDTOList;
+        return responseList;
     }
 
     private LocalDateTime parseDate(String date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         return LocalDateTime.parse(date, formatter);
     }
 
-    public MatchDTO mapToDTO(Match match) {
+    public MatchDTO mapToResponse(Match match) {
         MatchDTO matchDTO = new MatchDTO();
 
         matchDTO.setDate(match.getDate().toString());
@@ -162,5 +173,43 @@ public class MatchService {
         matchDTO.setVisitTeamName(match.getVisitTeamName());
 
         return matchDTO;
+    }
+
+    private void verifyEmptiness(MatchDTO request) throws InvalidRequestFieldException {
+        if (request.getDate().isEmpty()
+                || request.getDivisionName().isEmpty()
+                || request.getHomeTeamName().isEmpty()
+                || request.getVisitTeamName().isEmpty()
+        )
+            throw new InvalidRequestFieldException("ONE OR MORE FIELD ON REQUEST ARE EMPTY");
+    }
+
+    private void verifyUniqueness(MatchDTO request) throws UniquenessViolationException {
+        List<Match> matches = repository.findAll();
+
+        for (Match match : matches)
+            if (match.getDate().equals(parseDate(request.getDate()))
+                    && match.getDivisionName().equals(request.getDivisionName())
+                    && match.getHomeTeamName().equals(request.getHomeTeamName())
+                    && match.getVisitTeamName().equals(request.getVisitTeamName())
+            )
+                throw new UniquenessViolationException("MATCH ALREADY EXISTS");
+    }
+
+    private void verifyUniqueness(Long matchId, MatchDTO request) throws UniquenessViolationException {
+        List<Match> matches = repository.findAll();
+
+        List<Match> matchesFiltered = matches
+                .stream()
+                .filter(match -> !match.getId().equals(matchId))
+                .toList();
+
+        for (Match match : matchesFiltered)
+            if (match.getDate().equals(parseDate(request.getDate()))
+                    && match.getDivisionName().equals(request.getDivisionName())
+                    && match.getHomeTeamName().equals(request.getHomeTeamName())
+                    && match.getVisitTeamName().equals(request.getVisitTeamName())
+            )
+                throw new UniquenessViolationException("MATCH ALREADY EXISTS");
     }
 }
