@@ -1,6 +1,6 @@
 # LMF API
 
-A RESTful API built with Spring Boot for managing and serving data with a focus on clean architecture and maintainability.
+A RESTful API built with Spring Boot for managing and serving data with a focus on clean architecture and maintainability. This project provides a comprehensive payment system solution for local football leagues.
 
 ## 📋 Table of Contents
 
@@ -14,7 +14,7 @@ A RESTful API built with Spring Boot for managing and serving data with a focus 
 
 ## 📝 Description
 
-LMF API is a modern RESTful web service developed using Spring Boot and Java 21. It provides a scalable backend solution with data persistence using MySQL and implements best practices in API design. The project leverages Spring Data JPA for database operations and Lombok for reducing boilerplate code.
+LMF API is a modern RESTful web service developed using Spring Boot and Java 21. It provides a scalable backend solution specifically designed for managing payments in local football leagues. The system handles court management, match scheduling, and payment processing with data persistence using MySQL and implements best practices in API design.
 
 ### Key Features
 
@@ -24,6 +24,9 @@ LMF API is a modern RESTful web service developed using Spring Boot and Java 21.
 - **MySQL Integration** - Robust relational database support
 - **RESTful Architecture** - Clean and intuitive API design
 - **Lombok** - Automatic code generation for getters, setters, and constructors
+- **Payment System** - Complete payment processing for football league operations
+- **Court Management** - Manage sports facilities and their details
+- **Match Scheduling** - Organize and track matches within divisions
 
 ## 📦 Prerequisites
 
@@ -118,42 +121,106 @@ To run with a specific profile:
 http://localhost:8080/api
 ```
 
-### Available Endpoints
+### Court Endpoints
 
-#### Example Health Check
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/court/all` | Retrieve all courts |
+| GET | `/api/court/{name}` | Retrieve a specific court by name |
+| POST | `/api/court/add` | Create a new court |
+| PUT | `/api/court/update/{name}` | Update an existing court by name |
 
+### Match Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/match/{id}` | Retrieve a specific match by ID |
+| GET | `/api/match/courtName/{courtName}` | Retrieve matches by court name |
+| GET | `/api/match/date/{date}` | Retrieve matches by date (format: YYYY-MM-DD HH:mm) |
+| POST | `/api/match/add` | Create a new match |
+| PUT | `/api/match/update/{id}` | Update an existing match by ID |
+
+### Payment Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/payment/{courtName}` | Retrieve payments by court name |
+| POST | `/api/payment/add` | Create a new payment |
+
+## 📚 Examples
+
+### Example 1: Create a Court
+
+```bash
+curl -X POST http://localhost:8080/api/court/add \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "José Alberto Valle",
+    "address": "Av. Polonia 1335",
+    "ownerTeamName": "Club Atlético Kimberley"
+  }'
 ```
-GET /api/health
-```
-
-**Description:** Check if the API is running and healthy.
 
 **Response:**
 ```json
 {
-  "status": "UP",
-  "timestamp": "2026-06-07T14:01:25Z"
+  "name": "José Alberto Valle",
+  "address": "Av. Polonia 1335",
+  "ownerTeamName": "Club Atlético Kimberley"
 }
 ```
 
----
-
-**Note:** The specific business endpoints depend on your implementation. Below are common patterns used in REST APIs:
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/{resource}` | Retrieve all resources |
-| GET | `/api/{resource}/{id}` | Retrieve a specific resource by ID |
-| POST | `/api/{resource}` | Create a new resource |
-| PUT | `/api/{resource}/{id}` | Update an existing resource |
-| DELETE | `/api/{resource}/{id}` | Delete a resource |
-
-## 📚 Examples
-
-### Example 1: GET All Resources
+### Example 2: Get All Courts
 
 ```bash
-curl -X GET http://localhost:8080/api/resources \
+curl -X GET http://localhost:8080/api/court/all \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+```json
+[
+  {
+    "name": "José Alberto Valle",
+    "address": "Av. Polonia 1335",
+    "ownerTeamName": "Club Atlético Kimberley"
+  },
+  {
+    "name": "Predio Kraglievich",
+    "address": "Calle Principal 456",
+    "ownerTeamName": "Club Atlético"
+  }
+]
+```
+
+### Example 3: Create a Match
+
+```bash
+curl -X POST http://localhost:8080/api/match/add \
+  -H "Content-Type: application/json" \
+  -d '{
+    "date": "2026-02-02 15:00",
+    "divisionName": "1er División",
+    "homeTeamName": "Club Atlético Kimberley",
+    "visitTeamName": "Club Atlético"
+  }'
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "date": "2026-02-02 15:00",
+  "divisionName": "1er División",
+  "homeTeamName": "Club Atlético Kimberley",
+  "visitTeamName": "Club Atlético"
+}
+```
+
+### Example 4: Get Matches by Court
+
+```bash
+curl -X GET http://localhost:8080/api/match/courtName/jose%20alberto%20valle \
   -H "Content-Type: application/json"
 ```
 
@@ -162,61 +229,22 @@ curl -X GET http://localhost:8080/api/resources \
 [
   {
     "id": 1,
-    "name": "Resource 1",
-    "description": "First resource"
-  },
-  {
-    "id": 2,
-    "name": "Resource 2",
-    "description": "Second resource"
+    "date": "2026-02-02 15:00",
+    "divisionName": "1er División",
+    "homeTeamName": "Club Atlético Kimberley",
+    "visitTeamName": "Club Atlético"
   }
 ]
 ```
 
-### Example 2: GET Single Resource
+### Example 5: Create a Payment
 
 ```bash
-curl -X GET http://localhost:8080/api/resources/1 \
-  -H "Content-Type: application/json"
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "name": "Resource 1",
-  "description": "First resource"
-}
-```
-
-### Example 3: POST Create New Resource
-
-```bash
-curl -X POST http://localhost:8080/api/resources \
+curl -X POST http://localhost:8080/api/payment/add \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "New Resource",
-    "description": "A brand new resource"
-  }'
-```
-
-**Response:**
-```json
-{
-  "id": 3,
-  "name": "New Resource",
-  "description": "A brand new resource"
-}
-```
-
-### Example 4: PUT Update Resource
-
-```bash
-curl -X PUT http://localhost:8080/api/resources/1 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Updated Resource",
-    "description": "Updated description"
+    "amount": 1000,
+    "matchId": 1
   }'
 ```
 
@@ -224,19 +252,11 @@ curl -X PUT http://localhost:8080/api/resources/1 \
 ```json
 {
   "id": 1,
-  "name": "Updated Resource",
-  "description": "Updated description"
+  "amount": 1000,
+  "matchId": 1,
+  "status": "completed"
 }
 ```
-
-### Example 5: DELETE Resource
-
-```bash
-curl -X DELETE http://localhost:8080/api/resources/1 \
-  -H "Content-Type: application/json"
-```
-
-**Response:** HTTP 204 No Content
 
 ## 👨‍💻 Author
 
