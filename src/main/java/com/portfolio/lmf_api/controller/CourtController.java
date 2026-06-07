@@ -2,6 +2,9 @@ package com.portfolio.lmf_api.controller;
 
 import com.portfolio.lmf_api.dto.RequestCourtDTO;
 import com.portfolio.lmf_api.dto.ResponseCourtDTO;
+import com.portfolio.lmf_api.exception.InvalidRequestFieldException;
+import com.portfolio.lmf_api.exception.NotFoundException;
+import com.portfolio.lmf_api.exception.UniquenessViolationException;
 import com.portfolio.lmf_api.service.CourtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,23 +25,34 @@ public class CourtController {
 
     @GetMapping("/{courtName}")
     public ResponseEntity<ResponseCourtDTO> getByName(@PathVariable String courtName) {
-        Optional<ResponseCourtDTO> serviceRes = service.getByName(courtName);
-
-        return serviceRes.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            ResponseCourtDTO serviceRes = service.getByName(courtName);
+            return ResponseEntity.ok(serviceRes);
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping("/add")
-    public ResponseEntity<ResponseCourtDTO> addCourt(@RequestBody RequestCourtDTO request) {
-        return ResponseEntity.ok(service.addCourt(request));
+    public ResponseEntity<?> addCourt(@RequestBody RequestCourtDTO request) {
+        try {
+            return ResponseEntity.ok(service.addCourt(request));
+        } catch (UniquenessViolationException | InvalidRequestFieldException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/update/{courtName}")
-    public ResponseEntity<ResponseCourtDTO> update(
+    public ResponseEntity<?> update(
             @PathVariable String courtName,
             @RequestBody RequestCourtDTO request
     ) {
-        ResponseCourtDTO serviceRes = service.updateCourt(courtName, request);
-        return (serviceRes != null) ? ResponseEntity.ok(serviceRes) : ResponseEntity.badRequest().build();
+        try {
+            return ResponseEntity.ok(service.updateCourt(courtName, request));
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (InvalidRequestFieldException | UniquenessViolationException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

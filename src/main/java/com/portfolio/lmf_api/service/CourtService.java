@@ -8,6 +8,7 @@ import com.portfolio.lmf_api.exception.UniquenessViolationException;
 import com.portfolio.lmf_api.model.Court;
 import com.portfolio.lmf_api.repository.CourtRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class CourtService {
         return responseCourtDTO;
     }
 
-    public ResponseCourtDTO updateCourt(String courtName, RequestCourtDTO request) throws NotFoundException, InvalidRequestFieldException {
+    public ResponseCourtDTO updateCourt(String courtName, RequestCourtDTO request) throws NotFoundException, InvalidRequestFieldException, UniquenessViolationException {
         /* INITIAL FORMATTING */
         courtName = courtName.trim().toUpperCase();
 
@@ -90,7 +91,6 @@ public class CourtService {
         responseCourtDTO.setName(updatedEntity.getName());
         responseCourtDTO.setAddress(updatedEntity.getAddress());
         responseCourtDTO.setOwnerTeamName(updatedEntity.getOwnerTeamName());
-        responseCourtDTO.setMatches(new ArrayList<>());
 
         return responseCourtDTO;
     }

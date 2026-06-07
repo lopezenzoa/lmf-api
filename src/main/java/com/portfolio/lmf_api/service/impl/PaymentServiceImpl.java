@@ -28,7 +28,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired private CourtRepository courtRepository;
 
     @Override
-    public ResponsePaymentDTO addPayment(RequestPaymentDTO request) throws InvalidRequestFieldException {
+    public ResponsePaymentDTO addPayment(RequestPaymentDTO request) throws InvalidRequestFieldException, NotFoundException {
         /* VERIFYING REQUEST */
         if (request.getAmount() <= 0 || request.getMatchId() <= 0)
             throw new InvalidRequestFieldException("AMOUNT OR MATCH ID ARE NEGATIVE OR ZERO");
@@ -55,7 +55,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public List<ResponsePaymentDTO> getByCourtName(String courtName) {
+    public List<ResponsePaymentDTO> getByCourtName(String courtName) throws NotFoundException {
         /* INITIAL FORMATTING */
         courtName = courtName.trim().toUpperCase();
 

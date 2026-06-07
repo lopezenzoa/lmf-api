@@ -102,7 +102,7 @@ public class MatchService {
         return mapToResponse(updatedEntity);
     }
 
-    public MatchDTO getById(Long id) {
+    public MatchDTO getById(Long id) throws NotFoundException {
         Optional<Match> matchOptional = repository.findById(id);
 
         if (matchOptional.isEmpty())
@@ -114,7 +114,7 @@ public class MatchService {
         return mapToResponse(match);
     }
 
-    public List<MatchDTO> getByCourtName(String courtName) {
+    public List<MatchDTO> getByCourtName(String courtName) throws NotFoundException {
         /* INITIAL FORMATTING */
         courtName = courtName.trim().toUpperCase();
 

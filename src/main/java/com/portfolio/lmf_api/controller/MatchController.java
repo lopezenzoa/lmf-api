@@ -1,6 +1,9 @@
 package com.portfolio.lmf_api.controller;
 
 import com.portfolio.lmf_api.dto.MatchDTO;
+import com.portfolio.lmf_api.exception.InvalidRequestFieldException;
+import com.portfolio.lmf_api.exception.NotFoundException;
+import com.portfolio.lmf_api.exception.UniquenessViolationException;
 import com.portfolio.lmf_api.service.MatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +18,20 @@ public class MatchController {
 
     @GetMapping("/{matchId}")
     public ResponseEntity<MatchDTO> getById(@PathVariable Long matchId) {
-        MatchDTO serviceRes = service.getById(matchId);
-        return (serviceRes != null) ? ResponseEntity.ok(serviceRes) : ResponseEntity.notFound().build();
+        try {
+            return ResponseEntity.ok(service.getById(matchId));
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/courtName/{courtName}")
     public ResponseEntity<List<MatchDTO>> getByCourtName(@PathVariable String courtName) {
-        return ResponseEntity.ok(service.getByCourtName(courtName));
+        try {
+            return ResponseEntity.ok(service.getByCourtName(courtName));
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/date/{date}")
@@ -30,15 +40,24 @@ public class MatchController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<MatchDTO> addMatch(@RequestBody MatchDTO request) {
-        return ResponseEntity.ok(service.addMatch(request));
+    public ResponseEntity<?> addMatch(@RequestBody MatchDTO request) {
+        try {
+            return ResponseEntity.ok(service.addMatch(request));
+        } catch (InvalidRequestFieldException | UniquenessViolationException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PutMapping("/update/{matchId}")
-    public ResponseEntity<MatchDTO> updateMatch(@PathVariable Long matchId, @RequestBody MatchDTO request) {
-        MatchDTO serviceRes = service.updateMatch(matchId, request);
-        return (serviceRes != null) ? ResponseEntity.ok(serviceRes) : ResponseEntity.notFound().build();
+    public ResponseEntity<?> updateMatch(@PathVariable Long matchId, @RequestBody MatchDTO request) {
+        try {
+            return ResponseEntity.ok(service.updateMatch(matchId, request));
+        } catch (InvalidRequestFieldException | UniquenessViolationException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
-
-
 }
