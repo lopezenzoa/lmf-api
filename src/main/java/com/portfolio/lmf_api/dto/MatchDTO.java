@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class MatchDTO {
-    private LocalDateTime date;
+    private String date;
     private String divisionName;
     private String homeTeamName;
     private String visitTeamName;
