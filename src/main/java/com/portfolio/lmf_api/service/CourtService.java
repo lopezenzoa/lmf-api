@@ -21,6 +21,9 @@ public class CourtService {
     private CourtRepository repository;
 
     public ResponseCourtDTO addCourt(RequestCourtDTO request) throws InvalidRequestFieldException, UniquenessViolationException {
+        if (request.getName() == null)
+            throw new InvalidRequestFieldException("COURT NAME CAN'T BE NULL");
+
         /* INITIAL FORMATTING */
         request.setName(request.getName().trim().toUpperCase());
         request.setAddress(request.getAddress().trim().toUpperCase());
@@ -55,6 +58,9 @@ public class CourtService {
     }
 
     public ResponseCourtDTO updateCourt(String courtName, RequestCourtDTO request) throws NotFoundException, InvalidRequestFieldException, UniquenessViolationException {
+        if (courtName == null || request.getName() == null)
+            throw new InvalidRequestFieldException("COURT NAME CAN'T BE NULL");
+
         /* INITIAL FORMATTING */
         courtName = courtName.trim().toUpperCase();
 
@@ -114,7 +120,10 @@ public class CourtService {
         return responseCourtDTOS;
     }
 
-    public ResponseCourtDTO getByName(String name) throws NotFoundException {
+    public ResponseCourtDTO getByName(String name) throws NotFoundException, InvalidRequestFieldException {
+        if (name == null)
+            throw new InvalidRequestFieldException("NAME CAN'T BE NULL");
+
         /* INITIAL FORMATTING */
         name = name.trim().toUpperCase();
 
