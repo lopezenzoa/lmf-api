@@ -1,10 +1,7 @@
 package com.portfolio.lmf_api.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
+@EqualsAndHashCode
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +21,7 @@ public class Payment {
     @Column(nullable = false)
     private Integer amount;
 
-    @Column(nullable = false, columnDefinition = "DATETIME")
+    @Column(nullable = false)
     private LocalDateTime timestamp;
 
     @ManyToOne

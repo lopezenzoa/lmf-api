@@ -1,9 +1,6 @@
 package com.portfolio.lmf_api.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +8,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
+@EqualsAndHashCode
 public class ResponsePaymentDTO {
     private Integer amount;
     private LocalDateTime timestamp;

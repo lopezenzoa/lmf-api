@@ -30,8 +30,12 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public ResponsePaymentDTO addPayment(RequestPaymentDTO request) throws InvalidRequestFieldException, NotFoundException {
         /* VERIFYING REQUEST */
-        if (request.getAmount() <= 0 || request.getMatchId() <= 0)
-            throw new InvalidRequestFieldException("AMOUNT OR MATCH ID ARE NEGATIVE OR ZERO");
+        if (request.getAmount() <= 0)
+            throw new InvalidRequestFieldException("AMOUNT CAN'T BE NEITHER NEGATIVE OR ZERO");
+
+        if (request.getMatchId() <= 0)
+            throw new InvalidRequestFieldException("MATCH ID CAN'T BE NEITHER NEGATIVE OR ZERO");
+
 
         /* BUILDING THE ENTITY */
         Payment entity = new Payment();
@@ -55,7 +59,13 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public List<ResponsePaymentDTO> getByCourtName(String courtName) throws NotFoundException {
+    public List<ResponsePaymentDTO> getByCourtName(String courtName) throws NotFoundException, InvalidRequestFieldException {
+        if (courtName == null)
+            throw new InvalidRequestFieldException("COURT NAME CAN'T BE NULL");
+
+        if (courtName.trim().isEmpty())
+            throw new InvalidRequestFieldException("COURT NAME CAN'T BE BLANK");
+
         /* INITIAL FORMATTING */
         courtName = courtName.trim().toUpperCase();
 
