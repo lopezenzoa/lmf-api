@@ -13,4 +13,9 @@ import java.util.List;
 @Setter
 public class ResponseCourtDTO extends RequestCourtDTO {
     private List<MatchDTO> matches;
+
+    public ResponseCourtDTO(String name, String address, String ownerTeamName, List<MatchDTO> matches) {
+        super(name, address, ownerTeamName);
+        this.matches = matches;
+    }
 }
