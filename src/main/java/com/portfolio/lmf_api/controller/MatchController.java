@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
@@ -36,7 +37,11 @@ public class MatchController {
 
     @GetMapping("/date/{date}")
     public ResponseEntity<List<MatchDTO>> getByDate(@PathVariable String date) {
-        return ResponseEntity.ok(service.getByDate(date));
+        try {
+            return ResponseEntity.ok(service.getByDate(date));
+        } catch (DateTimeParseException | InvalidRequestFieldException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PostMapping("/add")
