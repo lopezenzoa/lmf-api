@@ -6,6 +6,7 @@ import com.portfolio.lmf_api.exception.NotFoundException;
 import com.portfolio.lmf_api.repository.PaymentRepository;
 import com.portfolio.lmf_api.service.CourtService;
 import com.portfolio.lmf_api.service.MatchService;
+import com.portfolio.lmf_api.util.QrCodeGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,7 +73,7 @@ class PaymentServiceImplTest {
         assertNotNull(response.getTimestamp());
         assertEquals(matchResponse, response.getMatch());
         assertEquals(courtResponse.getName(), response.getCourtName());
-        assertEquals("https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg", response.getQrCodeUrl());
+        assertEquals(QrCodeGenerator.generateQrCodeUrl(response.getTimestamp().toString()), response.getQrCodeUrl());
     }
 
     @Test
