@@ -12,6 +12,7 @@ import com.portfolio.lmf_api.repository.MatchRepository;
 import com.portfolio.lmf_api.repository.PaymentRepository;
 import com.portfolio.lmf_api.service.MatchService;
 import com.portfolio.lmf_api.service.PaymentService;
+import com.portfolio.lmf_api.util.QrCodeGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +51,9 @@ public class PaymentServiceImpl implements PaymentService {
             entity.setMatch(matchOpt.get());
         else
             throw new NotFoundException("MATCH WITH ID '" + request.getMatchId() + "' DOESN'T EXIST");
+
+        /* ADDING A QR CODE URL */
+        entity.setQrCodeUrl(QrCodeGenerator.generateQrCodeUrl(entity.getTimestamp().toString()));
 
         /* SAVING THE ENTITY */
         Payment savedEntity = repository.save(entity);
@@ -102,6 +106,7 @@ public class PaymentServiceImpl implements PaymentService {
         responsePaymentDTO.setTimestamp(payment.getTimestamp());
         responsePaymentDTO.setMatch(matchService.mapToResponse(payment.getMatch()));
         responsePaymentDTO.setCourtName(payment.getMatch().getCourt().getName());
+        responsePaymentDTO.setQrCodeUrl(payment.getQrCodeUrl());
 
         return responsePaymentDTO;
     }

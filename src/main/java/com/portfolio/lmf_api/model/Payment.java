@@ -24,6 +24,9 @@ public class Payment {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
+    @Column(name = "qr_code_url", nullable = false)
+    private String qrCodeUrl;
+
     @ManyToOne
     @JoinColumn(name = "match_id", nullable = false)
     private Match match;

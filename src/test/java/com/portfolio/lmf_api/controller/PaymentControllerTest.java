@@ -2,7 +2,6 @@ package com.portfolio.lmf_api.controller;
 
 import com.portfolio.lmf_api.dto.MatchDTO;
 import com.portfolio.lmf_api.dto.RequestPaymentDTO;
-import com.portfolio.lmf_api.dto.ResponseCourtDTO;
 import com.portfolio.lmf_api.dto.ResponsePaymentDTO;
 import com.portfolio.lmf_api.exception.InvalidRequestFieldException;
 import com.portfolio.lmf_api.exception.NotFoundException;
@@ -22,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -61,7 +59,8 @@ class PaymentControllerTest {
                         "Club Atletico El Cañon",
                         "Club Atletico Kimberley"
                         ),
-                        "Predio Kraglievich"
+                        "Predio Kraglievich",
+                        "https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
                 ),
                 new ResponsePaymentDTO(
                         1000,
@@ -72,7 +71,8 @@ class PaymentControllerTest {
                                 "Club Atletico El Cañon",
                                 "Club Atletico Kimberley"
                         ),
-                        "Predio Kraglievich"
+                        "Predio Kraglievich",
+                        "https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
                 )
         );
 
@@ -123,7 +123,8 @@ class PaymentControllerTest {
                         "Club Atletico El Cañon",
                         "Club Atletico Kimberley"
                 ),
-                "Predio Kraglievich"
+                "Predio Kraglievich",
+                "https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
         );
 
         when(service.addPayment(request)).thenReturn(expectedResponse);

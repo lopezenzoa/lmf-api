@@ -14,4 +14,5 @@ public class ResponsePaymentDTO {
     private LocalDateTime timestamp;
     private MatchDTO match;
     private String courtName;
+    private String qrCodeUrl;
 }
