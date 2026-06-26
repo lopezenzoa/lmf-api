@@ -51,6 +51,9 @@ public class PaymentServiceImpl implements PaymentService {
         else
             throw new NotFoundException("MATCH WITH ID '" + request.getMatchId() + "' DOESN'T EXIST");
 
+        /* ADDING A QR CODE URL */
+        entity.setQrCodeUrl("https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg");
+
         /* SAVING THE ENTITY */
         Payment savedEntity = repository.save(entity);
 
@@ -102,6 +105,7 @@ public class PaymentServiceImpl implements PaymentService {
         responsePaymentDTO.setTimestamp(payment.getTimestamp());
         responsePaymentDTO.setMatch(matchService.mapToResponse(payment.getMatch()));
         responsePaymentDTO.setCourtName(payment.getMatch().getCourt().getName());
+        responsePaymentDTO.setQrCodeUrl(payment.getQrCodeUrl());
 
         return responsePaymentDTO;
     }

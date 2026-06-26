@@ -3,10 +3,9 @@ package com.portfolio.lmf_api.service.impl;
 import com.portfolio.lmf_api.dto.*;
 import com.portfolio.lmf_api.exception.InvalidRequestFieldException;
 import com.portfolio.lmf_api.exception.NotFoundException;
-import com.portfolio.lmf_api.repository.MatchRepository;
+import com.portfolio.lmf_api.repository.PaymentRepository;
 import com.portfolio.lmf_api.service.CourtService;
 import com.portfolio.lmf_api.service.MatchService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +30,7 @@ class PaymentServiceImplTest {
 
     @Autowired private CourtService courtService;
     @Autowired private MatchService matchService;
-    @Autowired private MatchRepository matchRepository;
+    @Autowired private PaymentRepository repository;
 
     private MatchDTO matchResponse;
     private ResponseCourtDTO courtResponse;
@@ -73,11 +72,12 @@ class PaymentServiceImplTest {
         assertNotNull(response.getTimestamp());
         assertEquals(matchResponse, response.getMatch());
         assertEquals(courtResponse.getName(), response.getCourtName());
+        assertEquals("https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg", response.getQrCodeUrl());
     }
 
     @Test
     void whenAddingAPaymentWithZeroOrNegativeAmount_thenThrowAnInvalidRequestFieldException() {
-        matchRepository.deleteAll();
+        repository.deleteAll();
 
         RequestPaymentDTO invalidRequestWithZeroAmount = new RequestPaymentDTO(
                 0,
@@ -102,7 +102,7 @@ class PaymentServiceImplTest {
 
     @Test
     void whenAddingAPaymentWithZeroOrNegativeMatchId_thenThrowAnInvalidRequestFieldException() {
-        matchRepository.deleteAll();
+        repository.deleteAll();
 
         RequestPaymentDTO invalidRequestWithZeroMatchId = new RequestPaymentDTO(
                 1000,
@@ -153,7 +153,7 @@ class PaymentServiceImplTest {
 
     @Test
     void whenGettingByCourtNameWithNoPayments_thenReturnAnEmptyList() {
-        matchRepository.deleteAll();
+        repository.deleteAll();
 
         List<ResponsePaymentDTO> payments = service.getByCourtName("Predio Kraglievich");
         assertTrue(payments.isEmpty());
@@ -213,10 +213,5 @@ class PaymentServiceImplTest {
         List<ResponsePaymentDTO> otherPayments = service.getByCourtName("Predio Kraglievich II");
 
         assertNotEquals(payments, otherPayments);
-    }
-
-    @AfterEach
-    void tearDown() {
-        matchRepository.deleteAll();
     }
 }
